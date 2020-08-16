@@ -2,15 +2,17 @@ package entities;
 
 import main.Main;
 import main.World;
-import render.*;
+import render.Camera;
+import render.CollisionObject;
+import render.RenderableObject;
+import render.WalkingObject;
 
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
-import static main.World.TILE_SIZE;
-import static main.World.tiles;
-
 public class Player extends RenderableObject implements WalkingObject {
+
+    private static final BufferedImage sprite = Main.spriteSheet.getSprite(48, 0,16,16);
 
     public boolean left, right, up, down;
 
@@ -29,7 +31,7 @@ public class Player extends RenderableObject implements WalkingObject {
     private BufferedImage[] spriteMoveDown;
 
     public Player(int x, int y, int width, int height) {
-        super(x, y, width, height, Main.spriteSheet.getSprite(48, 0,16,16));
+        super(x, y, width, height, sprite);
 
         spriteMoveRight = new BufferedImage[4];
         spriteMoveLeft = new BufferedImage[4];
@@ -75,13 +77,13 @@ public class Player extends RenderableObject implements WalkingObject {
     }
 
     @Override
-    public void move() {
+    public void move(World currentWorld) {
         isMoving = false;
 
-        if(up && canMove(getX(), getY()-speed)) moveCima();
-        if(down && canMove(getX(), getY()+speed)) moveBaixo();
-        if(left && canMove(getX()-speed, getY())) moveEsquerda();
-        if(right && canMove(getX()+speed, getY())) moveDireita();
+        if(up && canMove(getX(), getY()-speed, currentWorld)) moveCima();
+        if(down && canMove(getX(), getY()+speed, currentWorld)) moveBaixo();
+        if(left && canMove(getX()-speed, getY(), currentWorld)) moveEsquerda();
+        if(right && canMove(getX()+speed, getY(), currentWorld)) moveDireita();
 
         if(isMoving) {
             frames++;
@@ -94,24 +96,24 @@ public class Player extends RenderableObject implements WalkingObject {
         }
     }
 
-    private boolean canMove(int xnext, int ynext) {
-        int x1 = xnext / TILE_SIZE;
-        int y1 = ynext / TILE_SIZE;
+    private boolean canMove(int xnext, int ynext, World currentWorld) {
+        int x1 = xnext / currentWorld.TILE_SIZE;
+        int y1 = ynext / currentWorld.TILE_SIZE;
 
-        int x2 = (xnext+ TILE_SIZE-1) / TILE_SIZE;
-        int y2 = ynext / TILE_SIZE;
+        int x2 = (xnext + currentWorld.TILE_SIZE - 1) / currentWorld.TILE_SIZE;
+        int y2 = ynext / currentWorld.TILE_SIZE;
 
-        int x3 = xnext / TILE_SIZE;
-        int y3 = (ynext+TILE_SIZE-1) / TILE_SIZE;
+        int x3 = xnext / currentWorld.TILE_SIZE;
+        int y3 = (ynext + currentWorld.TILE_SIZE - 1) / currentWorld.TILE_SIZE;
 
-        int x4 = (xnext+TILE_SIZE-1) / TILE_SIZE;
-        int y4 = (ynext+TILE_SIZE-1) / TILE_SIZE;
+        int x4 = (xnext+ currentWorld.TILE_SIZE - 1) / currentWorld.TILE_SIZE;
+        int y4 = (ynext+ currentWorld.TILE_SIZE - 1) / currentWorld.TILE_SIZE;
 
         try {
-            return !(tiles[x1 + (y1 * World.WIDTH)] instanceof CollisionObject ||
-                    tiles[x2 + (y2 * World.WIDTH)] instanceof CollisionObject ||
-                    tiles[x3 + (y3 * World.WIDTH)] instanceof CollisionObject ||
-                    tiles[x4 + (y4 * World.WIDTH)] instanceof CollisionObject);
+            return !(currentWorld.getTiles()[x1 + (y1 * currentWorld.getWidth())] instanceof CollisionObject ||
+                    currentWorld.getTiles()[x2 + (y2 * currentWorld.getWidth())] instanceof CollisionObject ||
+                    currentWorld.getTiles()[x3 + (y3 * currentWorld.getWidth())] instanceof CollisionObject ||
+                    currentWorld.getTiles()[x4 + (y4 * currentWorld.getWidth())] instanceof CollisionObject);
         } catch (Exception ex) {
             return false;
         }

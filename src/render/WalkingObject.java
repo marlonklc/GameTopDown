@@ -1,6 +1,8 @@
 package render;
 
+import main.World;
+
 public interface WalkingObject {
 
-    void move();
+    void move(World currentWorld);
 }

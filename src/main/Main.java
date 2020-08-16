@@ -6,7 +6,6 @@ import render.RenderableObject;
 import render.WalkingObject;
 import util.SpriteSheet;
 
-import javax.swing.JFrame;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,26 +22,39 @@ public class Main extends Canvas implements Runnable {
     private Thread thread;
     private boolean isRunning;
 
-    public static final int WIDTH = 160;
-    public static final int HEIGHT = 160;
     private final int SCALE = 3;
 
-    public static List<RenderableObject> entities;
+    public static List<RenderableObject> entities = new ArrayList<>();
     public static SpriteSheet spriteSheet;
     public static Player player;
 
-    private static World world;
+    private static Camera camera;
+
+    private static Worlds worlds;
+
+    private static World currentWorld;
+
+    public static void next() {
+        currentWorld = worlds.next();
+        camera = new Camera(currentWorld);
+    }
+
+    public static void previous() {
+        currentWorld = worlds.previous();
+        camera = new Camera(currentWorld);
+    }
 
     private Main() {
-        addKeyListener(new KeyboardControl());
-        setPreferredSize(new Dimension(WIDTH*SCALE,HEIGHT*SCALE));
-        frame = new MainFrame(this);
-        //inicializando objetos.
-        entities = new ArrayList<>();
         spriteSheet = new SpriteSheet("/SpriteSheet.png");
+        addKeyListener(new KeyboardControl());
+        setPreferredSize(new Dimension(Camera.WIDTH*SCALE,Camera.HEIGHT*SCALE));
+        frame = new MainFrame(this);
+
         player = new Player(0, 0, 16, 16);
         entities.add(player);
-        world = new World("/TileMap.png");
+        worlds = new Worlds();
+        currentWorld = worlds.next();
+        camera = new Camera(currentWorld);
     }
 
     private synchronized void start() {
@@ -73,7 +85,7 @@ public class Main extends Canvas implements Runnable {
             RenderableObject renderableObject = entities.get(i);
             if (renderableObject instanceof WalkingObject) {
                 WalkingObject walkingObject = (WalkingObject) renderableObject;
-                walkingObject.move();
+                walkingObject.move(currentWorld);
             }
         }
     }
@@ -84,12 +96,12 @@ public class Main extends Canvas implements Runnable {
             this.createBufferStrategy(3);
             return;
         }
-        BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        BufferedImage image = new BufferedImage(Camera.WIDTH, Camera.HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics g = image.getGraphics();
         g.setColor(Color.black);
-        g.fillRect(0,0, WIDTH, HEIGHT);
+        g.fillRect(0,0, Camera.WIDTH, Camera.HEIGHT);
 
-        world.render(g);
+        camera.render(g);
 
         for(int i = 0; i < entities.size(); i++) {
             RenderableObject renderableObject = entities.get(i);
@@ -97,7 +109,7 @@ public class Main extends Canvas implements Runnable {
         }
 
         g = bs.getDrawGraphics();
-        g.drawImage(image, 0, 0, WIDTH*SCALE, HEIGHT*SCALE, null);
+        g.drawImage(image, 0, 0, Camera.WIDTH*SCALE, Camera.HEIGHT*SCALE, null);
         bs.show();
     }
 
@@ -119,8 +131,8 @@ public class Main extends Canvas implements Runnable {
 
             if(delta >= 1) {
                 move();
+                camera.move(player.getX(), player.getY());
                 render();
-                Camera.moveCamera(player.getX(), player.getY());
                 frames++;
                 delta--;
             }

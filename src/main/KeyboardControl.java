@@ -17,6 +17,9 @@ public class KeyboardControl implements KeyListener {
             Main.player.left = true;
         }
 
+        if(e.getKeyCode() == KeyEvent.VK_MINUS) Main.previous();
+        if(e.getKeyCode() == KeyEvent.VK_EQUALS) Main.next();
+
         if(e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_W) {
             Main.player.up = true;
         } else if(e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_S) {
